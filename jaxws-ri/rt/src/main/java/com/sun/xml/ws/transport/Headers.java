@@ -106,7 +106,6 @@ public class Headers extends TreeMap<String,List<String>> {
     private static final class SensitiveComparator implements Comparator<String>, Serializable {
 
         public int compare(String o1, String o2) {
-            System.out.println("--------------- hop geldi ----------------------------");
             if ((o1 == null) && (o2 == null)) {
                 return 0;
             }
