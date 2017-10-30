@@ -84,10 +84,11 @@ import java.util.TreeMap;
 public class Headers extends TreeMap<String,List<String>> {
 
     public Headers() {
-        super(INSTANCE);
+        super(INSTANCE2);
     }
 
-    private static final InsensitiveComparator INSTANCE = new InsensitiveComparator();
+    private static final InsensitiveComparator INSTANCE1 = new InsensitiveComparator();
+    private static final SensitiveComparator INSTANCE2 = new SensitiveComparator();
 
     // case-insensitive string comparison of HTTP header names.
     private static final class InsensitiveComparator implements Comparator<String>, Serializable {
@@ -99,6 +100,20 @@ public class Headers extends TreeMap<String,List<String>> {
             if (o2 == null)
                 return 1;
             return o1.compareToIgnoreCase(o2);
+        }
+    }
+    
+    // case-sensitive string comparison of HTTP header names.
+    private static final class SensitiveComparator implements Comparator<String>, Serializable {
+        public int compare(String o1, String o2) {
+            System.out.println("--------------- hop geldi ----------------------------");
+            if ((o1 == null) && (o2 == null)) 
+                return 0;
+            if (o1 == null) 
+                return -1;
+            if (o2 == null) 
+                return 1;
+            return o1.compareTo(o2);
         }
     }
 
