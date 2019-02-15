@@ -53,12 +53,16 @@ import java.util.TreeMap;
  */
 public class Headers extends TreeMap<String,List<String>> {
 
-    public Headers() {
-        super(INSTANCE2);
+    public Headers(boolean caseSensitive) {
+        super(caseSensitive? SENSITIVE_COMPARATOR : INSENSITIVE_COMPARATOR);
     }
 
-    private static final InsensitiveComparator INSTANCE1 = new InsensitiveComparator();
-    private static final SensitiveComparator INSTANCE2 = new SensitiveComparator();
+    public Headers() {
+        this(true);
+    }
+
+    private static final InsensitiveComparator INSENSITIVE_COMPARATOR = new InsensitiveComparator();
+    private static final SensitiveComparator SENSITIVE_COMPARATOR = new SensitiveComparator();
 
     // case-insensitive string comparison of HTTP header names.
     private static final class InsensitiveComparator implements Comparator<String>, Serializable {
