@@ -7,6 +7,7 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
+// Portions Copyright [2019] [Payara Foundation and/or its affiliates]
 
 package com.sun.xml.ws.util.xml;
 
@@ -62,13 +63,20 @@ public class XmlCatalogUtil {
         manager.setUseStaticCatalog(false);
         // parse the catalog
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        Enumeration<URL> catalogEnum;
         Catalog catalog = manager.getCatalog();
+        parseResourcesToCatalog(cl, catalog, "META-INF/jax-ws-catalog.xml");
+        parseResourcesToCatalog(cl, catalog, "/WEB-INF/jax-ws-catalog.xml");
+
+        return workaroundCatalogResolver(catalog);
+    }
+
+    private static void parseResourcesToCatalog(ClassLoader classLoader, Catalog catalog, String resourceName) {
+        Enumeration<URL> catalogEnum;
         try {
-            if (cl == null) {
-                catalogEnum = ClassLoader.getSystemResources("META-INF/jax-ws-catalog.xml");
+            if (classLoader == null) {
+                catalogEnum = ClassLoader.getSystemResources(resourceName);
             } else {
-                catalogEnum = cl.getResources("META-INF/jax-ws-catalog.xml");
+                catalogEnum = classLoader.getResources(resourceName);
             }
 
             while (catalogEnum.hasMoreElements()) {
@@ -78,8 +86,6 @@ public class XmlCatalogUtil {
         } catch (IOException e) {
             throw new WebServiceException(e);
         }
-
-        return workaroundCatalogResolver(catalog);
     }
 
     /**
