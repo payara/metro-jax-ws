@@ -11,16 +11,21 @@
 
 package com.sun.xml.ws.util.xml;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.Enumeration;
+
+import javax.xml.ws.WebServiceException;
+
+import org.xml.sax.EntityResolver;
+
 import com.sun.istack.Nullable;
 import com.sun.org.apache.xml.internal.resolver.Catalog;
 import com.sun.org.apache.xml.internal.resolver.CatalogManager;
 import com.sun.org.apache.xml.internal.resolver.tools.CatalogResolver;
+import com.sun.xml.ws.api.ResourceLoader;
 import com.sun.xml.ws.server.ServerRtException;
-import java.io.IOException;
-import java.net.URL;
-import java.util.Enumeration;
-import javax.xml.ws.WebServiceException;
-import org.xml.sax.EntityResolver;
+import com.sun.xml.ws.util.ServiceFinder;
 
 /**
  *
@@ -59,17 +64,22 @@ public class XmlCatalogUtil {
         // set up a manager
         CatalogManager manager = new CatalogManager();
         manager.setIgnoreMissingProperties(true);
+        
         // Using static catalog may  result in to sharing of the catalog by multiple apps running in a container
         manager.setUseStaticCatalog(false);
-        // parse the catalog
+        
+        // Activates debug via system property, if set
+        manager.getVerbosity();
+        
+        // Parse the catalog
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         Catalog catalog = manager.getCatalog();
         parseResourcesToCatalog(cl, catalog, "META-INF/jax-ws-catalog.xml");
-        parseResourcesToCatalog(cl, catalog, "/WEB-INF/jax-ws-catalog.xml");
+        parseResourcesToCatalog(catalog, "jax-ws-catalog.xml");
 
         return workaroundCatalogResolver(catalog);
     }
-
+    
     private static void parseResourcesToCatalog(ClassLoader classLoader, Catalog catalog, String resourceName) {
         Enumeration<URL> catalogEnum;
         try {
@@ -82,6 +92,19 @@ public class XmlCatalogUtil {
             while (catalogEnum.hasMoreElements()) {
                 URL url = catalogEnum.nextElement();
                 catalog.parseCatalog(url);
+            }
+        } catch (IOException e) {
+            throw new WebServiceException(e);
+        }
+    }
+
+    private static void parseResourcesToCatalog(Catalog catalog, String resourceName) {
+        try {
+            for (ResourceLoader resourceLoader : ServiceFinder.find(ResourceLoader.class)) {
+                URL resource = resourceLoader.getResource(resourceName);
+                if (resource != null) {
+                    catalog.parseCatalog(resourceLoader.getResource(resourceName));
+                }
             }
         } catch (IOException e) {
             throw new WebServiceException(e);
